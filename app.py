@@ -36,34 +36,15 @@ country_options = [
     {"label": country, "value": country} for country in COUNTRIES
 ]
 
-
 # Load data
-df = pd.read_csv(DATA_PATH.joinpath("wellspublic.csv"), low_memory=False)
-df["Date_Well_Completed"] = pd.to_datetime(df["Date_Well_Completed"])
-df = df[df["Date_Well_Completed"] > dt.datetime(1960, 1, 1)]
-
-trim = df[["API_WellNo", "Well_Type", "Well_Name"]]
-trim.index = trim["API_WellNo"]
-dataset = trim.to_dict(orient="index")
-
-points = pickle.load(open(DATA_PATH.joinpath("points.pkl"), "rb"))
-
-alltime_china = pd.read_csv(DATA_PATH.joinpath('alltime_china.csv'))
-alltime_province = pd.read_csv(DATA_PATH.joinpath('alltime_province.csv'))
 alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
-today_province = pd.read_csv(DATA_PATH.joinpath('today_province.csv'))
-today_world = pd.read_csv(DATA_PATH.joinpath('today_world.csv'))
 
 # process data
-for df in [alltime_china, alltime_province, alltime_world]:
+for df in [alltime_world]:
     df['date'] = pd.to_datetime(df.date)
     df['year'] = df.date.apply(lambda x: x.year)
     df['month'] = df.date.apply(lambda x: x.month)
     df['day'] = df.date.apply(lambda x: x.day)
-today_world['lastUpdateTime'] = pd.to_datetime(today_world.lastUpdateTime)
-today_world['date'] = today_world['lastUpdateTime'].apply(lambda x: x.date())
-today_province['lastUpdateTime'] = pd.to_datetime(today_province.lastUpdateTime)
-today_province['date'] = today_province['lastUpdateTime'].apply(lambda x: x.date())
 
 # Create global chart template
 mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
@@ -112,7 +93,7 @@ app.layout = html.Div(
                         html.Div(
                             [
                                 html.H3(
-                                    "Covid-19肺炎疫情实时数据",
+                                    "COVID-19肺炎疫情实时数据",
                                     style={"margin-bottom": "0px"},
                                 ),
                                 html.H5(
@@ -425,7 +406,7 @@ def make_main_figure(dcat, month_slider):
     elif dcat == 'suspect':
         trace['colorbar_title'] = "疑似数"
 
-    layout['title_text'] = "Covid-19肺炎疫情全球地图"
+    layout['title_text'] = "COVID-19肺炎疫情全球地图"
     layout['geo'] = dict(
         showframe=False,
         showcoastlines=False,
@@ -433,7 +414,7 @@ def make_main_figure(dcat, month_slider):
     )
     layout['annotations'] = dict(
         x=0.5, y=0.1,
-        text='Covid-19', showarrow=False
+        text='COVID-19', showarrow=False
     )
 
     figure = dict(data=[trace], layout=layout)
@@ -511,6 +492,7 @@ def make_aggregate_figure(countries, month_slider):
         dict(
             type="scatter",
             mode="markers",
+            marker=dict(symbol='square', size=8),
             name="累计确诊病例",
             x=[NUM_TO_CN_MONTH[n] for n in index],
             y=confirm_cum,
@@ -519,6 +501,7 @@ def make_aggregate_figure(countries, month_slider):
         dict(
             type="scatter",
             mode="markers",
+            marker=dict(symbol='circle', size=8),
             name="累计死亡病例",
             x=[NUM_TO_CN_MONTH[n] for n in index],
             y=dead_cum,
@@ -527,6 +510,7 @@ def make_aggregate_figure(countries, month_slider):
         dict(
             type="scatter",
             mode="markers",
+            marker=dict(symbol='cross', size=8),
             name="累计治愈病例",
             x=[NUM_TO_CN_MONTH[n] for n in index],
             y=heal_cum,
@@ -535,6 +519,7 @@ def make_aggregate_figure(countries, month_slider):
         dict(
             type="scatter",
             mode="markers",
+            marker=dict(symbol='star', size=8),
             name="累计疑似病例",
             x=[NUM_TO_CN_MONTH[n] for n in index],
             y=suspect_sum,
@@ -593,11 +578,10 @@ def make_pie_figure(dcat, countries, month_slider):
             hoverinfo="label+text+value+percent",
             textinfo="label+percent+name",
             hole=0.5,
-            # marker=dict(colors=[WELL_COLORS[i] for i in aggregate.index]),
             domain={"x": [0.55, 1], "y": [0.2, 0.8]},
         ),
     ]
-    layout_pie["title"] = "各类数据所占比例"
+    layout_pie["title"] = "所选国各类数据比例（左） & 各国所选类数据比例（右）"
     layout_pie["font"] = dict(color="#777777")
     layout_pie["legend"] = dict(
         font=dict(color="#CCCCCC", size="10"), orientation="h", bgcolor="rgba(0,0,0,0)"
