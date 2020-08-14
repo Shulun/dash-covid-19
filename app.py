@@ -39,12 +39,16 @@ country_options = [
 # Load data
 alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
 
-# process data
-for df in [alltime_world]:
+# Helpers
+def get_dates(df):
     df['date'] = pd.to_datetime(df.date)
     df['year'] = df.date.apply(lambda x: x.year)
     df['month'] = df.date.apply(lambda x: x.month)
     df['day'] = df.date.apply(lambda x: x.day)
+
+# process data
+for df in [alltime_world]:
+    get_dates(df)
 
 # Create global chart template
 mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
@@ -209,7 +213,14 @@ app.layout = html.Div(
                             className="row container-display",
                         ),
                         html.Div(
-                            [dcc.Graph(id="count_graph")],
+                            [
+                                dcc.Graph(id="count_graph"),
+                                dcc.Interval(
+                                    id='interval-count',
+                                    interval=1800*1000,
+                                    n_intervals=0
+                                )
+                            ],
                             id="countGraphContainer",
                             className="pretty_container",
                         ),
@@ -223,11 +234,25 @@ app.layout = html.Div(
         html.Div(
             [
                 html.Div(
-                    [dcc.Graph(id="main_graph")],
+                    [
+                        dcc.Graph(id="main_graph"),
+                        dcc.Interval(
+                            id='interval-main',
+                            interval=1800*1000,
+                            n_intervals=0
+                        )
+                    ],
                     className="pretty_container seven columns",
                 ),
                 html.Div(
-                    [dcc.Graph(id="individual_graph")],
+                    [
+                        dcc.Graph(id="individual_graph"),
+                        dcc.Interval(
+                            id='interval-individual',
+                            interval=1800*1000,
+                            n_intervals=0
+                        )
+                    ],
                     className="pretty_container five columns",
                 ),
             ],
@@ -236,11 +261,25 @@ app.layout = html.Div(
         html.Div(
             [
                 html.Div(
-                    [dcc.Graph(id="pie_graph")],
+                    [
+                        dcc.Graph(id="pie_graph"),
+                        dcc.Interval(
+                            id='interval-pie',
+                            interval=1800*1000,
+                            n_intervals=0
+                        )
+                    ],
                     className="pretty_container seven columns",
                 ),
                 html.Div(
-                    [dcc.Graph(id="aggregate_graph")],
+                    [
+                        dcc.Graph(id="aggregate_graph"),
+                        dcc.Interval(
+                            id='interval-aggregate',
+                            interval=1800*1000,
+                            n_intervals=0
+                        )
+                    ],
                     className="pretty_container five columns",
                 ),
             ],
@@ -324,6 +363,8 @@ def display_ctype(selector):
 )
 def update_confirm(countries, month_slider):
 
+    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
     
     return dff.today_confirm.sum()
@@ -339,6 +380,8 @@ def update_confirm(countries, month_slider):
 )
 def update_dead(countries, month_slider):
 
+    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
 
     return dff.today_dead.sum()
@@ -354,6 +397,8 @@ def update_dead(countries, month_slider):
 )
 def update_heal(countries, month_slider):
 
+    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
 
     return dff.today_heal.sum()
@@ -369,6 +414,8 @@ def update_heal(countries, month_slider):
 )
 def update_suspect(countries, month_slider):
 
+    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
 
     return dff.today_suspect.sum()
@@ -380,10 +427,13 @@ def update_suspect(countries, month_slider):
     [
         Input("dcat_selector", "value"),
         Input("month_slider", "value"),
+        Input("interval-main", "n_intervals")
     ]
 )
-def make_main_figure(dcat, month_slider):
+def make_main_figure(dcat, month_slider, n):
 
+    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    get_dates(alltime_world)
     df = filter_dataframe(alltime_world, COUNTRIES, month_slider)
     df['en_name'] = [CNEN_DICT[k] if k in CNEN_DICT else '' for k in df['name']]
     df = df[df.en_name!='']
@@ -426,13 +476,16 @@ def make_main_figure(dcat, month_slider):
     Output("individual_graph", "figure"), 
     [
         Input("countries", "value"),
-        Input("month_slider", "value")
+        Input("month_slider", "value"),
+        Input("interval-individual", "n_intervals")
 
     ]
 )
-def make_individual_figure(countries, month_slider):
+def make_individual_figure(countries, month_slider, n):
 
     layout_individual = copy.deepcopy(layout)
+    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    get_dates(alltime_world)
     index, ifr, irr = produce_individual(alltime_world, countries, month_slider)
 
     if index is None:
@@ -481,11 +534,14 @@ def make_individual_figure(countries, month_slider):
     [
         Input("countries", "value"),
         Input("month_slider", "value"),
+        Input("interval-aggregate", "n_intervals")
     ],
 )
-def make_aggregate_figure(countries, month_slider):
+def make_aggregate_figure(countries, month_slider, n):
 
     layout_aggregate = copy.deepcopy(layout)
+    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    get_dates(alltime_world)
     index, confirm_cum, dead_cum, heal_cum, suspect_sum = produce_aggregate(alltime_world, countries, month_slider)
 
     data = [
@@ -539,11 +595,14 @@ def make_aggregate_figure(countries, month_slider):
         Input("dcat_selector", "value"),
         Input("countries", "value"),
         Input("month_slider", "value"),
+        Input("interval-pie", "n_intervals")
     ],
 )
-def make_pie_figure(dcat, countries, month_slider):
+def make_pie_figure(dcat, countries, month_slider, n):
 
     layout_pie = copy.deepcopy(layout)
+    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    get_dates(alltime_world)
     df_cat = filter_dataframe(alltime_world, countries, month_slider)
 
     df = filter_dataframe(alltime_world, COUNTRIES, month_slider)
@@ -598,12 +657,14 @@ def make_pie_figure(dcat, countries, month_slider):
         Input("dcat_selector", "value"),
         Input("countries", "value"),
         Input("month_slider", "value"),
+        Input("interval-count", "n_intervals")
     ],
 )
-def make_count_figure(dcat, countries, month_slider):
+def make_count_figure(dcat, countries, month_slider, n):
 
     layout_count = copy.deepcopy(layout)
-
+    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
     dff = dff.groupby(['month'])[COLUMNS].sum().reset_index()
 
