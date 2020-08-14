@@ -716,4 +716,4 @@ def make_count_figure(dcat, countries, month_slider, n):
 
 # Main
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(port=80, host='0.0.0.0')
