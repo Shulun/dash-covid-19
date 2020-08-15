@@ -36,19 +36,12 @@ country_options = [
     {"label": country, "value": country} for country in COUNTRIES
 ]
 
-# Load data
-alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
-
 # Helpers
 def get_dates(df):
     df['date'] = pd.to_datetime(df.date)
     df['year'] = df.date.apply(lambda x: x.year)
     df['month'] = df.date.apply(lambda x: x.month)
     df['day'] = df.date.apply(lambda x: x.day)
-
-# process data
-for df in [alltime_world]:
-    get_dates(df)
 
 # Create global chart template
 mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
@@ -71,224 +64,194 @@ layout = dict(
 )
 
 # Create app layout
-app.layout = html.Div(
-    [
-        dcc.Store(id="aggregate_data"),
-        # empty Div to trigger javascript file for graph resizing
-        html.Div(id="output-clientside"),
-        html.Div(
-            [
-                html.Div(
-                    [
-                        html.Img(
-                            src=app.get_asset_url("shulun-logo.png"),
-                            id="plotly-image",
-                            style={
-                                "height": "60px",
-                                "width": "auto",
-                                "margin-bottom": "25px",
-                            },
-                        )
-                    ],
-                    className="one-third column",
-                ),
-                html.Div(
-                    [
-                        html.Div(
-                            [
-                                html.H3(
-                                    "COVID-19肺炎疫情实时数据",
-                                    style={"margin-bottom": "0px"},
-                                ),
-                                html.H5(
-                                    id="clockbox",
-                                    style={"margin-top": "0px"},
-                                ),
-                            ]
-                        )
-                    ],
-                    className="one-half column",
-                    id="title",
-                ),
-                html.Div(
-                    [
-                        html.A(
-                            html.Button("更多信息", id="learn-more-button"),
-                            href="https://wp.m.163.com/163/page/news/virus_report/index.html",
-                        )
-                    ],
-                    className="one-third column",
-                    id="button",
-                ),
-            ],
-            id="header",
-            className="row flex-display",
-            style={"margin-bottom": "25px"},
-        ),
-        html.Div(
-            [
-                html.Div(
-                    [
-                        html.P(
-                            "选择月份:",
-                            className="control_label",
-                        ),
-                        dcc.RangeSlider(
-                            id="month_slider",
-                            min=1,
-                            max=12,
-                            value=[1, 8],
-                            className="dcc_control",
-                        ),
-                        html.Div(
-                            "",
-                            style={'padding': 10}
-                        ),
-                        html.P("选择数据种类:", className="control_label"),
-                        dcc.RadioItems(
-                            id="dcat_selector",
-                            options=[
-                                {"label": "确诊", "value": "confirm"},
-                                {"label": "死亡", "value": "dead"},
-                                {"label": "治愈", "value": "heal"},
-                                {"label": "疑似", "value": "suspect"},
-                            ],
-                            value="confirm",
-                            labelStyle={"display": "inline-block"},
-                            className="dcc_control",
-                        ),
-                        html.Div(
-                            "",
-                            style={'padding': 10}
-                        ),
-                        html.P("选择国家（或地区）:", className="control_label"),
-                        dcc.RadioItems(
-                            id="country_selector",
-                            options=[
-                                {"label": "全部国家", "value": "all"},
-                                {"label": "中国", "value": "china"},
-                                {"label": "自定义", "value": "custom"},
-                            ],
-                            value="china",
-                            labelStyle={"display": "inline-block"},
-                            className="dcc_control",
-                        ),
-                        dcc.Dropdown(
-                            id="countries",
-                            options=country_options,
-                            multi=True,
-                            value=list(COUNTRIES),
-                            className="dcc_control",
-                        ),
-                    ],
-                    className="pretty_container four columns",
-                    id="cross-filter-options",
-                ),
-                html.Div(
-                    [
-                        html.Div(
-                            [
-                                html.Div(
-                                    [html.H6(id="total_confirm"), html.P("全部确诊")],
-                                    id="confirm",
-                                    className="mini_container",
-                                ),
-                                html.Div(
-                                    [html.H6(id="total_dead"), html.P("全部死亡")],
-                                    id="dead",
-                                    className="mini_container",
-                                ),
-                                html.Div(
-                                    [html.H6(id="total_heal"), html.P("全部治愈")],
-                                    id="heal",
-                                    className="mini_container",
-                                ),
-                                html.Div(
-                                    [html.H6(id="total_suspect"), html.P("全部疑似")],
-                                    id="suspect",
-                                    className="mini_container",
-                                ),
-                            ],
-                            id="info-container",
-                            className="row container-display",
-                        ),
-                        html.Div(
-                            [
-                                dcc.Graph(id="count_graph"),
-                                dcc.Interval(
-                                    id='interval-count',
-                                    interval=1800*1000,
-                                    n_intervals=0
-                                )
-                            ],
-                            id="countGraphContainer",
-                            className="pretty_container",
-                        ),
-                    ],
-                    id="right-column",
-                    className="eight columns",
-                ),
-            ],
-            className="row flex-display",
-        ),
-        html.Div(
-            [
-                html.Div(
-                    [
-                        dcc.Graph(id="main_graph"),
-                        dcc.Interval(
-                            id='interval-main',
-                            interval=1800*1000,
-                            n_intervals=0
-                        )
-                    ],
-                    className="pretty_container seven columns",
-                ),
-                html.Div(
-                    [
-                        dcc.Graph(id="individual_graph"),
-                        dcc.Interval(
-                            id='interval-individual',
-                            interval=1800*1000,
-                            n_intervals=0
-                        )
-                    ],
-                    className="pretty_container five columns",
-                ),
-            ],
-            className="row flex-display",
-        ),
-        html.Div(
-            [
-                html.Div(
-                    [
-                        dcc.Graph(id="pie_graph"),
-                        dcc.Interval(
-                            id='interval-pie',
-                            interval=1800*1000,
-                            n_intervals=0
-                        )
-                    ],
-                    className="pretty_container seven columns",
-                ),
-                html.Div(
-                    [
-                        dcc.Graph(id="aggregate_graph"),
-                        dcc.Interval(
-                            id='interval-aggregate',
-                            interval=1800*1000,
-                            n_intervals=0
-                        )
-                    ],
-                    className="pretty_container five columns",
-                ),
-            ],
-            className="row flex-display",
-        ),
-    ],
-    id="mainContainer",
-    style={"display": "flex", "flex-direction": "column"},
-)
+def serve_layout():
+    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    return html.Div(
+        [
+            dcc.Store(id="aggregate_data"),
+            # empty Div to trigger javascript file for graph resizing
+            html.Div(id="output-clientside"),
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.Img(
+                                src=app.get_asset_url("shulun-logo.png"),
+                                id="plotly-image",
+                                style={
+                                    "height": "60px",
+                                    "width": "auto",
+                                    "margin-bottom": "25px",
+                                },
+                            )
+                        ],
+                        className="one-third column",
+                    ),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.H3(
+                                        "COVID-19肺炎疫情实时数据",
+                                        style={"margin-bottom": "0px"},
+                                    ),
+                                    html.H5(
+                                        id="clockbox",
+                                        style={"margin-top": "0px"},
+                                    ),
+                                ]
+                            )
+                        ],
+                        className="one-half column",
+                        id="title",
+                    ),
+                    html.Div(
+                        [
+                            html.A(
+                                html.Button("更多信息", id="learn-more-button"),
+                                href="https://wp.m.163.com/163/page/news/virus_report/index.html",
+                            )
+                        ],
+                        className="one-third column",
+                        id="button",
+                    ),
+                ],
+                id="header",
+                className="row flex-display",
+                style={"margin-bottom": "25px"},
+            ),
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.P(
+                                "选择月份:",
+                                className="control_label",
+                            ),
+                            dcc.RangeSlider(
+                                id="month_slider",
+                                min=1,
+                                max=12,
+                                value=[1, 8],
+                                className="dcc_control",
+                            ),
+                            html.Div(
+                                "",
+                                style={'padding': 10}
+                            ),
+                            html.P("选择数据种类:", className="control_label"),
+                            dcc.RadioItems(
+                                id="dcat_selector",
+                                options=[
+                                    {"label": "确诊", "value": "confirm"},
+                                    {"label": "死亡", "value": "dead"},
+                                    {"label": "治愈", "value": "heal"},
+                                    {"label": "疑似", "value": "suspect"},
+                                ],
+                                value="confirm",
+                                labelStyle={"display": "inline-block"},
+                                className="dcc_control",
+                            ),
+                            html.Div(
+                                "",
+                                style={'padding': 10}
+                            ),
+                            html.P("选择国家（或地区）:", className="control_label"),
+                            dcc.RadioItems(
+                                id="country_selector",
+                                options=[
+                                    {"label": "全部国家", "value": "all"},
+                                    {"label": "中国", "value": "china"},
+                                    {"label": "自定义", "value": "custom"},
+                                ],
+                                value="china",
+                                labelStyle={"display": "inline-block"},
+                                className="dcc_control",
+                            ),
+                            dcc.Dropdown(
+                                id="countries",
+                                options=country_options,
+                                multi=True,
+                                value=list(COUNTRIES),
+                                className="dcc_control",
+                            ),
+                        ],
+                        className="pretty_container four columns",
+                        id="cross-filter-options",
+                    ),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.Div(
+                                        [html.H6(id="total_confirm"), html.P("全部确诊")],
+                                        id="confirm",
+                                        className="mini_container",
+                                    ),
+                                    html.Div(
+                                        [html.H6(id="total_dead"), html.P("全部死亡")],
+                                        id="dead",
+                                        className="mini_container",
+                                    ),
+                                    html.Div(
+                                        [html.H6(id="total_heal"), html.P("全部治愈")],
+                                        id="heal",
+                                        className="mini_container",
+                                    ),
+                                    html.Div(
+                                        [html.H6(id="total_suspect"), html.P("全部疑似")],
+                                        id="suspect",
+                                        className="mini_container",
+                                    ),
+                                ],
+                                id="info-container",
+                                className="row container-display",
+                            ),
+                            html.Div(
+                                [dcc.Graph(id="count_graph")],
+                                id="countGraphContainer",
+                                className="pretty_container",
+                            ),
+                        ],
+                        id="right-column",
+                        className="eight columns",
+                    ),
+                ],
+                className="row flex-display",
+            ),
+            html.Div(
+                [
+                    html.Div(
+                        [dcc.Graph(id="main_graph")],
+                        className="pretty_container seven columns",
+                    ),
+                    html.Div(
+                        [dcc.Graph(id="individual_graph")],
+                        className="pretty_container five columns",
+                    ),
+                ],
+                className="row flex-display",
+            ),
+            html.Div(
+                [
+                    html.Div(
+                        [dcc.Graph(id="pie_graph")],
+                        className="pretty_container seven columns",
+                    ),
+                    html.Div(
+                        [dcc.Graph(id="aggregate_graph")],
+                        className="pretty_container five columns",
+                    ),
+                ],
+                className="row flex-display",
+            ),
+            html.Div(alltime_world.to_json(orient='split'), id='cache', style={'display': 'none'})
+        ],
+        id="mainContainer",
+        style={"display": "flex", "flex-direction": "column"},
+    )
+
+app.layout = serve_layout
 
 
 # Helper functions
@@ -341,6 +304,13 @@ app.clientside_callback(
     [Input("count_graph", "figure")],
 )
 
+# @app.callback(
+#     Output('cache', 'children'),
+#     [Input('file-timestamp', 'value')]
+# )
+# def update_cache(value):
+#     return alltime_world.to_json(orient='split')
+
 
 # Radio -> multi
 @app.callback(Output("countries", "value"), [Input("country_selector", "value")])
@@ -357,13 +327,14 @@ def display_ctype(selector):
 @app.callback(
     Output("total_confirm", "children"),
     [
+        Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ],
 )
-def update_confirm(countries, month_slider):
+def update_confirm(json_data, countries, month_slider):
 
-    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    alltime_world = pd.read_json(json_data, orient='split')
     get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
     
@@ -374,13 +345,14 @@ def update_confirm(countries, month_slider):
 @app.callback(
     Output("total_dead", "children"),
     [
+        Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ],
 )
-def update_dead(countries, month_slider):
+def update_dead(json_data, countries, month_slider):
 
-    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    alltime_world = pd.read_json(json_data, orient='split')
     get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
 
@@ -391,13 +363,14 @@ def update_dead(countries, month_slider):
 @app.callback(
     Output("total_heal", "children"),
     [
+        Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ],
 )
-def update_heal(countries, month_slider):
+def update_heal(json_data, countries, month_slider):
 
-    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    alltime_world = pd.read_json(json_data, orient='split')
     get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
 
@@ -408,13 +381,14 @@ def update_heal(countries, month_slider):
 @app.callback(
     Output("total_suspect", "children"),
     [
+        Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ],
 )
-def update_suspect(countries, month_slider):
-
-    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+def update_suspect(json_data, countries, month_slider):
+    
+    alltime_world = pd.read_json(json_data, orient='split')
     get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
 
@@ -425,14 +399,14 @@ def update_suspect(countries, month_slider):
 @app.callback(
     Output("main_graph", "figure"),
     [
+        Input("cache", "children"),
         Input("dcat_selector", "value"),
         Input("month_slider", "value"),
-        Input("interval-main", "n_intervals")
     ]
 )
-def make_main_figure(dcat, month_slider, n):
+def make_main_figure(json_data, dcat, month_slider):
 
-    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    alltime_world = pd.read_json(json_data, orient='split')
     get_dates(alltime_world)
     df = filter_dataframe(alltime_world, COUNTRIES, month_slider)
     df['en_name'] = [CNEN_DICT[k] if k in CNEN_DICT else '' for k in df['name']]
@@ -475,16 +449,15 @@ def make_main_figure(dcat, month_slider, n):
 @app.callback(
     Output("individual_graph", "figure"), 
     [
+        Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
-        Input("interval-individual", "n_intervals")
-
     ]
 )
-def make_individual_figure(countries, month_slider, n):
+def make_individual_figure(json_data, countries, month_slider):
 
     layout_individual = copy.deepcopy(layout)
-    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    alltime_world = pd.read_json(json_data, orient='split')
     get_dates(alltime_world)
     index, ifr, irr = produce_individual(alltime_world, countries, month_slider)
 
@@ -532,15 +505,15 @@ def make_individual_figure(countries, month_slider, n):
 @app.callback(
     Output("aggregate_graph", "figure"),
     [
+        Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
-        Input("interval-aggregate", "n_intervals")
     ],
 )
-def make_aggregate_figure(countries, month_slider, n):
+def make_aggregate_figure(json_data, countries, month_slider):
 
     layout_aggregate = copy.deepcopy(layout)
-    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    alltime_world = pd.read_json(json_data, orient='split')
     get_dates(alltime_world)
     index, confirm_cum, dead_cum, heal_cum, suspect_sum = produce_aggregate(alltime_world, countries, month_slider)
 
@@ -592,16 +565,16 @@ def make_aggregate_figure(countries, month_slider, n):
 @app.callback(
     Output("pie_graph", "figure"),
     [
+        Input("cache", "children"),
         Input("dcat_selector", "value"),
         Input("countries", "value"),
         Input("month_slider", "value"),
-        Input("interval-pie", "n_intervals")
     ],
 )
-def make_pie_figure(dcat, countries, month_slider, n):
+def make_pie_figure(json_data, dcat, countries, month_slider):
 
     layout_pie = copy.deepcopy(layout)
-    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    alltime_world = pd.read_json(json_data, orient='split')
     get_dates(alltime_world)
     df_cat = filter_dataframe(alltime_world, countries, month_slider)
 
@@ -654,16 +627,16 @@ def make_pie_figure(dcat, countries, month_slider, n):
 @app.callback(
     Output("count_graph", "figure"),
     [
+        Input("cache", "children"),
         Input("dcat_selector", "value"),
         Input("countries", "value"),
         Input("month_slider", "value"),
-        Input("interval-count", "n_intervals")
     ],
 )
-def make_count_figure(dcat, countries, month_slider, n):
+def make_count_figure(json_data, dcat, countries, month_slider):
 
     layout_count = copy.deepcopy(layout)
-    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    alltime_world = pd.read_json(json_data, orient='split')
     get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
     dff = dff.groupby(['month'])[COLUMNS].sum().reset_index()
@@ -716,4 +689,5 @@ def make_count_figure(dcat, countries, month_slider, n):
 
 # Main
 if __name__ == "__main__":
-    app.run_server(port=80, host='0.0.0.0')
+    # app.run_server(port=80, host='0.0.0.0')
+    app.run_server(debug=True)
