@@ -43,6 +43,9 @@ def get_dates(df):
     df['month'] = df.date.apply(lambda x: x.month)
     df['day'] = df.date.apply(lambda x: x.day)
 
+alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+get_dates(alltime_world)
+
 # Create global chart template
 mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
 
@@ -64,9 +67,10 @@ layout = dict(
 )
 
 # Create app layout
-def serve_layout():
-    alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
-    return html.Div(
+# def serve_layout():
+    # alltime_world = pd.read_csv(DATA_PATH.joinpath('alltime_world.csv'))
+    # return html.Div(
+app.layout = html.Div(
         [
             dcc.Store(id="aggregate_data"),
             # empty Div to trigger javascript file for graph resizing
@@ -251,7 +255,7 @@ def serve_layout():
         style={"display": "flex", "flex-direction": "column"},
     )
 
-app.layout = serve_layout
+# app.layout = serve_layout
 
 
 # Helper functions
@@ -345,15 +349,16 @@ def update_confirm(json_data, countries, month_slider):
 @app.callback(
     Output("total_dead", "children"),
     [
-        Input("cache", "children"),
+        # Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ],
 )
-def update_dead(json_data, countries, month_slider):
+# def update_dead(json_data, countries, month_slider):
+def update_dead(countries, month_slider):
 
-    alltime_world = pd.read_json(json_data, orient='split')
-    get_dates(alltime_world)
+    # alltime_world = pd.read_json(json_data, orient='split')
+    # get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
 
     return dff.today_dead.sum()
@@ -363,15 +368,16 @@ def update_dead(json_data, countries, month_slider):
 @app.callback(
     Output("total_heal", "children"),
     [
-        Input("cache", "children"),
+        # Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ],
 )
-def update_heal(json_data, countries, month_slider):
+# def update_heal(json_data, countries, month_slider):
+def update_heal(countries, month_slider):
 
-    alltime_world = pd.read_json(json_data, orient='split')
-    get_dates(alltime_world)
+    # alltime_world = pd.read_json(json_data, orient='split')
+    # get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
 
     return dff.today_heal.sum()
@@ -381,15 +387,16 @@ def update_heal(json_data, countries, month_slider):
 @app.callback(
     Output("total_suspect", "children"),
     [
-        Input("cache", "children"),
+        # Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ],
 )
-def update_suspect(json_data, countries, month_slider):
+# def update_suspect(json_data, countries, month_slider):
+def update_suspect(countries, month_slider):
     
-    alltime_world = pd.read_json(json_data, orient='split')
-    get_dates(alltime_world)
+    # alltime_world = pd.read_json(json_data, orient='split')
+    # get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
 
     return dff.today_suspect.sum()
@@ -399,15 +406,16 @@ def update_suspect(json_data, countries, month_slider):
 @app.callback(
     Output("main_graph", "figure"),
     [
-        Input("cache", "children"),
+        # Input("cache", "children"),
         Input("dcat_selector", "value"),
         Input("month_slider", "value"),
     ]
 )
-def make_main_figure(json_data, dcat, month_slider):
+# def make_main_figure(json_data, dcat, month_slider):
+def make_main_figure(dcat, month_slider):
 
-    alltime_world = pd.read_json(json_data, orient='split')
-    get_dates(alltime_world)
+    # alltime_world = pd.read_json(json_data, orient='split')
+    # get_dates(alltime_world)
     df = filter_dataframe(alltime_world, COUNTRIES, month_slider)
     df['en_name'] = [CNEN_DICT[k] if k in CNEN_DICT else '' for k in df['name']]
     df = df[df.en_name!='']
@@ -449,16 +457,17 @@ def make_main_figure(json_data, dcat, month_slider):
 @app.callback(
     Output("individual_graph", "figure"), 
     [
-        Input("cache", "children"),
+        # Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ]
 )
-def make_individual_figure(json_data, countries, month_slider):
+# def make_individual_figure(json_data, countries, month_slider):
+def make_individual_figure(countries, month_slider):
 
     layout_individual = copy.deepcopy(layout)
-    alltime_world = pd.read_json(json_data, orient='split')
-    get_dates(alltime_world)
+    # alltime_world = pd.read_json(json_data, orient='split')
+    # get_dates(alltime_world)
     index, ifr, irr = produce_individual(alltime_world, countries, month_slider)
 
     if index is None:
@@ -505,16 +514,17 @@ def make_individual_figure(json_data, countries, month_slider):
 @app.callback(
     Output("aggregate_graph", "figure"),
     [
-        Input("cache", "children"),
+        # Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ],
 )
-def make_aggregate_figure(json_data, countries, month_slider):
+# def make_aggregate_figure(json_data, countries, month_slider):
+def make_aggregate_figure(countries, month_slider):
 
     layout_aggregate = copy.deepcopy(layout)
-    alltime_world = pd.read_json(json_data, orient='split')
-    get_dates(alltime_world)
+    # alltime_world = pd.read_json(json_data, orient='split')
+    # get_dates(alltime_world)
     index, confirm_cum, dead_cum, heal_cum, suspect_sum = produce_aggregate(alltime_world, countries, month_slider)
 
     data = [
@@ -565,17 +575,18 @@ def make_aggregate_figure(json_data, countries, month_slider):
 @app.callback(
     Output("pie_graph", "figure"),
     [
-        Input("cache", "children"),
+        # Input("cache", "children"),
         Input("dcat_selector", "value"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ],
 )
-def make_pie_figure(json_data, dcat, countries, month_slider):
+# def make_pie_figure(json_data, dcat, countries, month_slider):
+def make_pie_figure(dcat, countries, month_slider):
 
     layout_pie = copy.deepcopy(layout)
-    alltime_world = pd.read_json(json_data, orient='split')
-    get_dates(alltime_world)
+    # alltime_world = pd.read_json(json_data, orient='split')
+    # get_dates(alltime_world)
     df_cat = filter_dataframe(alltime_world, countries, month_slider)
 
     df = filter_dataframe(alltime_world, COUNTRIES, month_slider)
@@ -627,17 +638,17 @@ def make_pie_figure(json_data, dcat, countries, month_slider):
 @app.callback(
     Output("count_graph", "figure"),
     [
-        Input("cache", "children"),
+        # Input("cache", "children"),
         Input("dcat_selector", "value"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ],
 )
-def make_count_figure(json_data, dcat, countries, month_slider):
-
+# def make_count_figure(json_data, dcat, countries, month_slider):
+def make_count_figure(dcat, countries, month_slider):
     layout_count = copy.deepcopy(layout)
-    alltime_world = pd.read_json(json_data, orient='split')
-    get_dates(alltime_world)
+    # alltime_world = pd.read_json(json_data, orient='split')
+    # get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
     dff = dff.groupby(['month'])[COLUMNS].sum().reset_index()
 
@@ -690,4 +701,4 @@ def make_count_figure(json_data, dcat, countries, month_slider):
 # Main
 if __name__ == "__main__":
     app.run_server(port=80, host='0.0.0.0')
-    # app.run_server(debug=True)
+    # app.run_server(debug=True, port=8080)
