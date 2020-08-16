@@ -50,4 +50,4 @@ for country_id in country_dict:
     except:
         print('-'*20, country_dict[country_id], 'wrong', '-'*20)
 
-alltime_world.to_csv("./data/alltime_world_copy.csv", encoding='utf_8_sig')
+alltime_world.to_csv("/root/dash-covid-19/data/alltime_world_copy.csv", encoding='utf_8_sig')
