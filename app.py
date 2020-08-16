@@ -249,7 +249,7 @@ app.layout = html.Div(
                 ],
                 className="row flex-display",
             ),
-            html.Div(alltime_world.to_json(orient='split'), id='cache', style={'display': 'none'})
+            # html.Div(alltime_world.to_json(orient='split'), id='cache', style={'display': 'none'})
         ],
         id="mainContainer",
         style={"display": "flex", "flex-direction": "column"},
@@ -331,15 +331,16 @@ def display_ctype(selector):
 @app.callback(
     Output("total_confirm", "children"),
     [
-        Input("cache", "children"),
+        # Input("cache", "children"),
         Input("countries", "value"),
         Input("month_slider", "value"),
     ],
 )
-def update_confirm(json_data, countries, month_slider):
+# def update_confirm(json_data, countries, month_slider):
+def update_confirm(countries, month_slider):
 
-    alltime_world = pd.read_json(json_data, orient='split')
-    get_dates(alltime_world)
+    # alltime_world = pd.read_json(json_data, orient='split')
+    # get_dates(alltime_world)
     dff = filter_dataframe(alltime_world, countries, month_slider)
     
     return dff.today_confirm.sum()
