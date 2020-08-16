@@ -13,6 +13,7 @@ virtualenv venv
 
 # Windows
 venv\Scripts\activate
+
 # Or Linux
 source venv/bin/activate
 
@@ -32,3 +33,7 @@ Run the app
 python app.py
 
 ```
+
+### Example dashboard
+![example dashboard](./example.png)
+
