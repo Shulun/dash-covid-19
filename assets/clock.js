@@ -12,6 +12,7 @@ window.addEventListener("load", function() {
         document.getElementById('clockbox').innerHTML=clocktext;
     }
 
-    GetClock();
+    // GetClock();
+    window.onload = GetClock;
     setInterval(GetClock, 1000);
 });
