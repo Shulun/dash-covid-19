@@ -35,5 +35,5 @@ python app.py
 ```
 
 ### Example dashboard
-![example dashboard](./example.png)
+![example dashboard](./demo.png)
 
