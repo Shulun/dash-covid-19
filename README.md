@@ -35,5 +35,5 @@ python app.py
 ```
 
 ### Example dashboard
-![example dashboard](./demo.png)
+![example dashboard](https://cdn.jsdelivr.net/gh/shulun/cdn/demo.png)
 
